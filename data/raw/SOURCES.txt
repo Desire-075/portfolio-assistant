@@ -1,0 +1,4 @@
+Date de telechargement : 2026-11-10
+prices_etf.csv : prix de cloture ajustes (dividendes inclus), journaliers, source Yahoo Finance via yfinance
+risk_free_tb3ms.csv : taux du Tresor US a 3 mois (% annuel, mensuel), source FRED serie TB3MS
+Actifs : SPY, QQQ, IWM, EFA, EEM, AGG, TLT, LQD, GLD, VNQ, DBC
