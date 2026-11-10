@@ -219,7 +219,7 @@ class ExplainAgent:
 
         lines = [
             f"PORTEFEUILLE PROPOSE - profil {p.risk}, objectif {p.objective}, "
-            f"capital {p.capital:,.0f} DH (decision au {ctx.as_of.date()})".replace(",", " "),
+            f"capital {p.capital:_.0f} DH (decision au {ctx.as_of.date()})".replace("_", " "),
             f"Methode retenue : {s.name}. {ctx.selection_note}",
             "",
             "Repartition par classe d'actifs :",
@@ -277,3 +277,4 @@ if __name__ == "__main__":
     print("TRACE DES AGENTS (profil Prudent) :")
     for sender, receiver, text in first.trace:
         print(f"  [{sender}] -> [{receiver}] : {text}")
+
