@@ -36,3 +36,6 @@ VAL_END = "2020-12-31"          # validation : 2017-2020 ; test : 2021 jusqu'a a
 ESTIMATION_WINDOW = 60   # mois d'historique pour estimer mu et la covariance
 MAX_WEIGHT = 0.4         # plafond par actif (min variance, max Sharpe)
 COST_BPS = 10            # cout de transaction : 10 points de base par unite de rotation
+
+# Marge de securite sur la volatilite cible (calibree sur la validation, profil Prudent)
+VOL_BUFFER = 0.8

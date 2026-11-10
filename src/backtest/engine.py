@@ -1,4 +1,8 @@
-﻿"""Backtest walk-forward : chaque mois, on re-estime avec les 60 derniers mois puis on investit."""
+﻿"""Backtest walk-forward : chaque mois, on re-estime avec les 60 derniers mois puis on investit.
+
+Une methode renvoie des poids sur les actifs ; le poids en liquidites est implicite (1 - somme)
+et rapporte le taux sans risque du mois.
+"""
 import numpy as np
 import pandas as pd
 
@@ -30,6 +34,7 @@ def walk_forward(rets: pd.DataFrame, assets: list, methods: dict, start: str,
         mu, cov = al.estimate(hist[assets])
         rf = hist["RF"].mean()
         r = rets.iloc[p][assets].values.astype(float)   # rendement realise du mois p
+        rf_now = float(rets.iloc[p]["RF"])              # taux sans risque du mois p
 
         for name, fn in methods.items():
             try:
@@ -38,11 +43,13 @@ def walk_forward(rets: pd.DataFrame, assets: list, methods: dict, start: str,
                 fails[name] += 1
                 w = last_w.get(name, np.full(len(assets), 1.0 / len(assets)))
             last_w[name] = w
-            to = 0.0 if drifted[name] is None else float(np.abs(w - drifted[name]).sum())
-            gross = float(w @ r)
+            cash = max(0.0, 1.0 - float(w.sum()))
+            pos = np.r_[w, cash]
+            to = 0.0 if drifted[name] is None else float(np.abs(pos - drifted[name]).sum())
+            gross = float(w @ r) + cash * rf_now
             net_returns[name].append(gross - to * cost_bps / 1e4)
             turnover[name].append(to)
-            drifted[name] = w * (1 + r) / (1 + gross)
+            drifted[name] = np.r_[w * (1 + r), cash * (1 + rf_now)] / (1 + gross)
 
     dates = idx[p0:]
     return pd.DataFrame(net_returns, index=dates), pd.DataFrame(turnover, index=dates), fails
@@ -71,7 +78,7 @@ def main() -> None:
     if any(fails.values()):
         print("Echecs d'optimisation :", {k: v for k, v in fails.items() if v})
 
-    pd.options.display.float_format = '{:.3f}'.format
+    pd.options.display.float_format = "{:.3f}".format
     pd.options.display.width = 200
     pd.options.display.max_columns = 20
     periods = {
@@ -94,4 +101,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
