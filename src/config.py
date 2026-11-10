@@ -31,3 +31,8 @@ DOWNLOAD_START = "2003-01-01"
 ANALYSIS_START = "2007-01-01"   # DBC (le plus recent) existe depuis fevrier 2006
 TRAIN_END = "2016-12-31"        # train : 2007-2016
 VAL_END = "2020-12-31"          # validation : 2017-2020 ; test : 2021 jusqu'a aujourd'hui
+
+# Backtest et allocation (parametres provisoires)
+ESTIMATION_WINDOW = 60   # mois d'historique pour estimer mu et la covariance
+MAX_WEIGHT = 0.4         # plafond par actif (min variance, max Sharpe)
+COST_BPS = 10            # cout de transaction : 10 points de base par unite de rotation
