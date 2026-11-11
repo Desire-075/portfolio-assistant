@@ -19,7 +19,7 @@ def fixed_weights(assets: list, spec: dict) -> np.ndarray:
 
 
 def walk_forward(rets: pd.DataFrame, assets: list, methods: dict, start: str,
-                 window: int, cost_bps: float):
+                 window: int, cost_bps: float, mu_overrides: dict | None = None):
     """Renvoie (rendements nets par methode, rotation par methode, nombre d'echecs d'optimisation)."""
     idx = rets.index
     p0 = int(idx.searchsorted(pd.Timestamp(start)))
@@ -38,7 +38,8 @@ def walk_forward(rets: pd.DataFrame, assets: list, methods: dict, start: str,
 
         for name, fn in methods.items():
             try:
-                w = fn(mu, cov, rf)
+                mu_m = mu_overrides[name].loc[idx[p - 1]].values if mu_overrides and name in mu_overrides else mu
+                w = fn(mu_m, cov, rf)
             except RuntimeError:
                 fails[name] += 1
                 w = last_w.get(name, np.full(len(assets), 1.0 / len(assets)))
@@ -101,3 +102,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
