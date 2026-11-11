@@ -152,32 +152,41 @@ class OptimizationAgent:
 class RiskAgent:
     name = "Agent Risque"
 
-    def run(self, ctx: Context) -> None:
+    def assess(self, ctx: Context, c: Candidate) -> Candidate:
+        """Calcule les indicateurs d'un candidat et applique les regles de risque."""
         mu_s = SHRINKAGE * ctx.mu + (1 - SHRINKAGE) * ctx.mu.mean()
         hist_assets = ctx.hist[ctx.assets].values
         rf_hist = ctx.hist["RF"].values
         lo, hi = VOL_BAND
+        w = c.weights
+        c.vol = float(np.sqrt(w @ ctx.cov @ w * 12))
+        c.exp_return = float((w @ mu_s + c.cash * ctx.rf) * 12)
+        c.sharpe = (c.exp_return - ctx.rf * 12) / c.vol if c.vol > 0 else 0.0
+        c.worst_month = float((hist_assets @ w + c.cash * rf_hist).min())
+        c.max_weight = float(w.max())
+        c.eff_n = float(1.0 / np.sum((w / w.sum()) ** 2))
+        c.reasons = []
+        if c.vol < lo * ctx.target_vol:
+            c.reasons.append(f"volatilite {c.vol:.1%} sous la bande (min {lo * ctx.target_vol:.1%})")
+        if c.vol > hi * ctx.target_vol:
+            c.reasons.append(f"volatilite {c.vol:.1%} au-dessus de la bande (max {hi * ctx.target_vol:.1%})")
+        if c.max_weight > MAX_ASSET_WEIGHT + 1e-9:
+            c.reasons.append(f"un ETF depasse {MAX_ASSET_WEIGHT:.0%} ({c.max_weight:.0%})")
+        if c.eff_n < MIN_EFFECTIVE_N:
+            c.reasons.append(f"diversification insuffisante ({c.eff_n:.1f} positions effectives)")
+        c.accepted = not c.reasons
+        return c
+
+    def run(self, ctx: Context) -> None:
         for c in ctx.candidates:
-            w = c.weights
-            c.vol = float(np.sqrt(w @ ctx.cov @ w * 12))
-            c.exp_return = float((w @ mu_s + c.cash * ctx.rf) * 12)
-            c.sharpe = (c.exp_return - ctx.rf * 12) / c.vol if c.vol > 0 else 0.0
-            c.worst_month = float((hist_assets @ w + c.cash * rf_hist).min())
-            c.max_weight = float(w.max())
-            c.eff_n = float(1.0 / np.sum((w / w.sum()) ** 2))
-            c.reasons = []
-            if c.vol < lo * ctx.target_vol:
-                c.reasons.append(f"volatilite {c.vol:.1%} sous la bande (min {lo * ctx.target_vol:.1%})")
-            if c.vol > hi * ctx.target_vol:
-                c.reasons.append(f"volatilite {c.vol:.1%} au-dessus de la bande (max {hi * ctx.target_vol:.1%})")
-            if c.max_weight > MAX_ASSET_WEIGHT + 1e-9:
-                c.reasons.append(f"un ETF depasse {MAX_ASSET_WEIGHT:.0%} ({c.max_weight:.0%})")
-            if c.eff_n < MIN_EFFECTIVE_N:
-                c.reasons.append(f"diversification insuffisante ({c.eff_n:.1f} positions effectives)")
-            c.accepted = not c.reasons
+            self.assess(ctx, c)
         ok = [c.name for c in ctx.candidates if c.accepted]
         ctx.log(self.name, "Agent Selection",
                 f"{len(ok)}/{len(ctx.candidates)} candidats acceptes : {', '.join(ok) if ok else 'aucun'}")
+
+
+# "best" : un seul candidat (v1) ; "consensus" : moyenne des candidats acceptes (v2)
+SELECTION_MODE = "consensus"
 
 
 class SelectionAgent:
@@ -190,6 +199,12 @@ class SelectionAgent:
             best = min(ctx.candidates, key=lambda c: abs(c.vol - ctx.target_vol))
             ctx.selection_note = ("Aucun candidat ne respecte toutes les regles de risque ; "
                                   "retenu : le plus proche de la volatilite cible (a examiner avec prudence).")
+        elif SELECTION_MODE == "consensus" and len(acc) > 1:
+            w = np.mean([c.weights for c in acc], axis=0)
+            best = Candidate(name="Consensus", weights=w, cash=max(0.0, 1.0 - float(w.sum())))
+            RiskAgent().assess(ctx, best)
+            ctx.selection_note = (f"Consensus : moyenne des {len(acc)} candidats acceptes "
+                                  f"({', '.join(c.name for c in acc)}), ce qui limite le risque de modele et la rotation.")
         elif obj == "Preserver":
             best = max(acc, key=lambda c: c.worst_month)
             ctx.selection_note = "Objectif de preservation : pire mois historique le moins mauvais parmi les candidats acceptes."
@@ -277,4 +292,5 @@ if __name__ == "__main__":
     print("TRACE DES AGENTS (profil Prudent) :")
     for sender, receiver, text in first.trace:
         print(f"  [{sender}] -> [{receiver}] : {text}")
+
 
