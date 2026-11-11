@@ -19,7 +19,7 @@ def fixed_weights(assets: list, spec: dict) -> np.ndarray:
 
 
 def walk_forward(rets: pd.DataFrame, assets: list, methods: dict, start: str,
-                 window: int, cost_bps: float, mu_overrides: dict | None = None):
+                 window: int, cost_bps: float, mu_overrides: dict | None = None, estimator=None):
     """Renvoie (rendements nets par methode, rotation par methode, nombre d'echecs d'optimisation)."""
     idx = rets.index
     p0 = int(idx.searchsorted(pd.Timestamp(start)))
@@ -31,7 +31,7 @@ def walk_forward(rets: pd.DataFrame, assets: list, methods: dict, start: str,
 
     for p in range(p0, len(idx)):
         hist = rets.iloc[p - window: p]          # information disponible jusqu'a la fin du mois p-1
-        mu, cov = al.estimate(hist[assets])
+        mu, cov = (estimator or al.estimate)(hist[assets])
         rf = hist["RF"].mean()
         r = rets.iloc[p][assets].values.astype(float)   # rendement realise du mois p
         rf_now = float(rets.iloc[p]["RF"])              # taux sans risque du mois p
@@ -102,4 +102,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
