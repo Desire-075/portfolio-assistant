@@ -149,6 +149,39 @@ div[data-testid="stFormSubmitButton"] button { width: 100%; }
 .agent-name { font-weight: 600; color: #0B1F3A; margin-bottom: .1rem; }
 .agent-text { color: #4B5563; font-size: .94rem; line-height: 1.6; }
 .legal { color: #9CA3AF; font-size: .8rem; line-height: 1.6; margin-top: 2.5rem; }
+
+/* ---- formulaire colore ---- */
+.stApp { background: linear-gradient(180deg, #E4F0F6 0%, #F2F7FA 40%, #F2F7FA 100%); }
+div[data-testid="stForm"] { background: linear-gradient(135deg, #E8F5F6 0%, #F1EEFB 55%, #FFF4E0 100%);
+  border: 1px solid #C9E0E4; border-top: 6px solid #0E7C86; border-radius: 18px; padding: 1.8rem 2rem;
+  box-shadow: 0 8px 24px rgba(14, 124, 134, .10); }
+.panel-title { display: flex; align-items: center; gap: .75rem; font-size: 1.15rem; font-weight: 700; color: #0B1F3A;
+  margin: 0 0 1.1rem 0; padding: .65rem .9rem; border-radius: 12px; background: #ffffff;
+  border-left: 6px solid var(--c, #0E7C86); box-shadow: 0 1px 3px rgba(16, 24, 40, .06); }
+.panel-num { background: var(--c, #0E7C86); color: #ffffff; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: .9rem; font-weight: 700; flex: 0 0 1.9rem; }
+div[data-testid="stWidgetLabel"] p { color: #0B1F3A; font-weight: 600; }
+div[data-baseweb="input"] > div, div[data-baseweb="select"] > div { background: #ffffff !important;
+  border: 1.5px solid #B7D8DC !important; border-radius: 10px !important; }
+div[data-baseweb="input"] input { background: transparent !important; }
+div[data-baseweb="input"] > div:focus-within, div[data-baseweb="select"] > div:focus-within {
+  border-color: #0E7C86 !important; box-shadow: 0 0 0 3px rgba(14, 124, 134, .18) !important; }
+div[data-testid="stRadio"] div[role="radiogroup"] > label { background: #ffffff; border: 1px solid #D5E5E8;
+  border-left: 6px solid #0E7C86; border-radius: 12px; padding: .7rem .9rem; margin-bottom: .6rem; width: 100%;
+  transition: box-shadow .15s ease, background .15s ease; }
+div[data-testid="stRadio"] div[role="radiogroup"] > label:nth-of-type(1) { border-left-color: #2E9E6B; }
+div[data-testid="stRadio"] div[role="radiogroup"] > label:nth-of-type(2) { border-left-color: #3B6EA5; }
+div[data-testid="stRadio"] div[role="radiogroup"] > label:nth-of-type(3) { border-left-color: #E0693B; }
+div[data-testid="stRadio"] div[role="radiogroup"] > label:hover { box-shadow: 0 4px 12px rgba(16, 24, 40, .10); }
+div[data-testid="stRadio"] div[role="radiogroup"] > label:nth-of-type(1):has(input:checked) { background: #E4F5EC; }
+div[data-testid="stRadio"] div[role="radiogroup"] > label:nth-of-type(2):has(input:checked) { background: #E3ECF7; }
+div[data-testid="stRadio"] div[role="radiogroup"] > label:nth-of-type(3):has(input:checked) { background: #FCE9E1; }
+div[data-testid="stExpander"] details { background: #FFF6DF; border: 1px solid #EBD39A !important; border-radius: 12px; }
+div[data-testid="stExpander"] summary { color: #7A5A12; font-weight: 600; }
+div[data-testid="stFormSubmitButton"] button { background: linear-gradient(90deg, #0E7C86 0%, #3B6EA5 100%);
+  color: #ffffff; border: none; box-shadow: 0 6px 16px rgba(14, 124, 134, .30); }
+div[data-testid="stFormSubmitButton"] button:hover { filter: brightness(1.06); transform: translateY(-1px); color: #ffffff; }
+div[data-testid="stFormSubmitButton"] button p { color: #ffffff; }
 </style>
 """
 
@@ -448,7 +481,7 @@ def form_page(rets: pd.DataFrame) -> None:
     with st.form("profil"):
         left, right = st.columns(2, gap="large")
         with left:
-            st.markdown("##### Votre projet")
+            md("<div class='panel-title' style='--c:#0E7C86'><span class='panel-num'>1</span>Votre projet</div>")
             first_name = st.text_input("Prénom", placeholder="Facultatif")
             capital_txt = st.text_input("Capital à investir, en dirhams", placeholder="Par exemple 100 000")
             horizon = st.selectbox("Durée prévue de l'investissement", HORIZONS, index=None,
@@ -456,7 +489,7 @@ def form_page(rets: pd.DataFrame) -> None:
             objective = st.selectbox("Votre objectif", list(OBJECTIVES), index=None,
                                      placeholder="Choisissez un objectif")
         with right:
-            st.markdown("##### Votre rapport au risque")
+            md("<div class='panel-title' style='--c:#E0693B'><span class='panel-num'>2</span>Votre rapport au risque</div>")
             risk = st.radio("Votre profil de risque", list(RISKS), index=None,
                             captions=list(RISKS.values()))
             reaction = st.selectbox("Si votre portefeuille perdait 15 % en quelques mois, que feriez-vous ?",
