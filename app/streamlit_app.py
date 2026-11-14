@@ -151,6 +151,8 @@ div[data-testid="stFormSubmitButton"] button { width: 100%; }
 .legal { color: #9CA3AF; font-size: .8rem; line-height: 1.6; margin-top: 2.5rem; }
 
 /* ---- formulaire colore ---- */
+footer { visibility: hidden; }
+#MainMenu { visibility: hidden; }
 .stApp { background: linear-gradient(180deg, #E4F0F6 0%, #F2F7FA 40%, #F2F7FA 100%); }
 div[data-testid="stForm"] { background: linear-gradient(135deg, #E8F5F6 0%, #F1EEFB 55%, #FFF4E0 100%);
   border: 1px solid #C9E0E4; border-top: 6px solid #0E7C86; border-radius: 18px; padding: 1.8rem 2rem;
@@ -616,7 +618,8 @@ def results_page(ctx, rets: pd.DataFrame, answers: dict) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Assistant de portefeuille", layout="wide")
+    icon_path = Path(__file__).resolve().parent / "icon.png"
+    st.set_page_config(page_title="Assistant de portefeuille", page_icon=str(icon_path) if icon_path.exists() else "\U0001F4C8", layout="wide")
     md(CSS)
     rets = load_returns()
     ctx = st.session_state.get("ctx")
